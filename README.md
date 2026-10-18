@@ -68,8 +68,11 @@ Whereas Machine code offers more direct control over the hardware, but is less u
 > [!NOTE]
 > These 2 examples are actually the same program! One was written in assembly, and the other one was compiled into hex!
 
-## Assembly
-The native supported assembly for the BB-8 CPU is called BoxASM, and the syntax highlighting for VSCode can be found in [the BoxASM repository][boxasm-git]. Programs written in BoxASM are composed of 4 different types of instructions:
+## Box Assembly
+<img width="128" height="128" alt="BoxASM" src="https://github.com/user-attachments/assets/b59eea33-938d-44f9-8c8f-51dde80a9da6" />
+(dont mind the logo, i know it sucks)
+
+The native supported assembly for the BB-8 CPU is called BoxASM (or Box Assembly), and the syntax highlighting for VSCode can be found in [the BoxASM repository][boxasm-git]. Programs written in BoxASM are composed of 4 different types of instructions:
 - Memory allocation
 - CPU instructions
 - Literal values

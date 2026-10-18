@@ -1,0 +1,14 @@
+@0000
+;*
+this is a comment block
+*;
+
+#PROG
+    LDA $01     ;loads into registers
+    LDB $01
+    AA0         ;loads into alu
+    BA1
+    ADD
+    ALA         ;retreives solution
+
+    HLT         ;ends program

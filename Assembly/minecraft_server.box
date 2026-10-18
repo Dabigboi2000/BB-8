@@ -1,0 +1,199 @@
+@0000
+
+#WAIT
+    LDF &WAITH LDG &WAITL   ;wait for message
+    EX0 JMR
+
+    PCA AA0                 ;check if equal to 0x01 for login request
+    LDB $01
+    BA1
+
+    LDF &SLOGH LDG &SLOGL   ;if is request, start login
+    NEQ JMR
+                
+    LDB $02                 ;check if equal to 0x02 to start handshake
+    BA1
+
+    LDF &SHANH LDG &SHANL   ;if is request, start handshake
+    NEQ JMR
+
+    JMP &WAITH &WAITL       ;else jump back to loop
+
+#SHAN
+    LDA *C PAA              ;send teletype message
+    LDA *l PAA
+    LDA *i PAA
+    LDA *e PAA
+    LDA *n PAA
+    LDA *t PAA
+    LDA $20 PAA
+    LDA *r PAA
+    LDA *e PAA
+    LDA *q PAA
+    LDA *u PAA
+    LDA *e PAA
+    LDA *s PAA
+    LDA *t PAA
+    LDA *i PAA
+    LDA *n PAA
+    LDA *g PAA
+    LDA $20 PAA
+    LDA *h PAA
+    LDA *a PAA
+    LDA *n PAA
+    LDA *d PAA
+    LDA *s PAA
+    LDA *h PAA
+    LDA *a PAA
+    LDA *k PAA
+    LDA *e PAA
+    LDA $0a PAA
+
+    LDD $00                 ;start of text buffer
+    LDE $80
+    JMP &HANDH &HANDL
+
+#HAND
+    LDF &RETUH LDG &RETUL   ;loop through rest of data
+    EX0 JMR
+
+    PCA                     ;write to text buffer
+    WRA
+
+    LDB $01                 ;increment counter
+    DA0
+    BA1
+    ADD
+    ALD
+    JMP &HANDH &HANDL
+
+#RETU
+    LDA $02 PBA             ;send return
+    LDA $00 PBA
+    LDA $01 PBA
+    LDA $00 PBA
+    LDA $2D PBA
+
+    LDA *H PAA
+    LDA *a PAA
+    LDA *n PAA
+    LDA *d PAA
+    LDA *s PAA
+    LDA *h PAA
+    LDA *a PAA
+    LDA *k PAA
+    LDA *e PAA
+    LDA $20 PAA
+    LDA *d PAA
+    LDA *o PAA
+    LDA *n PAA
+    LDA *e PAA
+    LDA $0a PAA
+
+    JMP &WAITH &WAITL
+
+#SLOG
+    LDA *C PAA              ;send teletype message
+    LDA *l PAA
+    LDA *i PAA
+    LDA *e PAA
+    LDA *n PAA
+    LDA *t PAA
+    LDA $20 PAA
+    LDA *r PAA
+    LDA *e PAA
+    LDA *q PAA
+    LDA *u PAA
+    LDA *e PAA
+    LDA *s PAA
+    LDA *t PAA
+    LDA *i PAA
+    LDA *n PAA
+    LDA *g PAA
+    LDA $20 PAA
+    LDA *l PAA
+    LDA *o PAA
+    LDA *g PAA
+    LDA *i PAA
+    LDA *n PAA
+    LDA $0a PAA
+
+    LDD $00                 ;start of text buffer
+    LDE $81
+    JMP &LOGIH &LOGIL
+
+#LOGI
+    LDF &SREPH LDG &SREPL   ;loop through rest of data
+    EX0 JMR
+
+    PCA                     ;write to text buffer
+    WRA
+
+    LDB $01                 ;increment counter
+    DA0
+    BA1
+    ADD
+    ALD
+    JMP &LOGIH &LOGIL
+
+#SREP
+    LDA *S PAA              ;send teletype message
+    LDA *e PAA
+    LDA *n PAA
+    LDA *d PAA
+    LDA *i PAA
+    LDA *n PAA
+    LDA *g PAA
+    LDA $20 PAA
+    LDA *p PAA
+    LDA *a PAA
+    LDA *c PAA
+    LDA *k PAA
+    LDA *e PAA
+    LDA *t PAA
+    LDA *s PAA
+    LDA *. PAA
+    LDA *. PAA
+    LDA *. PAA
+    LDA $0a PAA
+
+    LDD $00                 ;set to start of send data
+    LDE $05
+    JMP &REPLH &REPLL
+
+#REPL
+    RDA                     ;send byte
+    PBA
+
+    LDB $00                 ;set up boolean
+    LDA $01
+
+    LDC $77                 ;if is not equal, set bool to false
+    CA0
+    DA1
+    EQU B>A
+    LDC $05                 ;if is not equal, set bool to false
+    CA0
+    EA1
+    EQU B>A
+
+    AA0
+    BA1
+    LDF &HALTH LDG &HALTL   ;if is not equal, continue loop
+    EQU JMR
+    
+    LDB $01                 ;increment register D
+    BA0 DA1
+    ADD ALD
+
+    LDF &REPLH LDG &REPLL   ;loop again if not carry, else continue
+    CAR JMR
+
+    AA0 EA1                 ;increment register E
+    ADD ALE
+
+    JMP &REPLH &REPLL       ;loop again
+
+#HALT
+    HLT;
+

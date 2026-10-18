@@ -78,7 +78,22 @@ The native supported assembly for the BB-8 CPU is called BoxASM (or Box Assembly
 - Literal values
 - Functions and declarations
 
+Comments are written with a ';' and last till the next line. Comment blocks are written as ";**;" and last till the closing pair:
+```asm
+;this is a comment
+
+;*
+this is a comment block
+\_(*-*)_/
+*;
+```
 ### Memory Allocations
+Memory allocations are placed at the start of every assembly file to be ran. This tells the compiler where the Program will be stored in memory, and adjusts the function calls to the correct offset:
+```asm
+@0000    ;this tells the compiler the program starts at 0x0000
+```
+> [!NOTE]
+> For normal use, this example above is absolutely fine, but the address must match where it is stored and ran.
 
 ### CPU instructions
 

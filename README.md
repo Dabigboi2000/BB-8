@@ -5,7 +5,9 @@ Over the past few years I have become increasingly interested in computer progra
 - Memory management
 - ALU (arithmatic logic unit)
 - External Ports
-With the addition of the MCU (microcode unit), and began creating a design. I wanted to eventualy build the CPU on breadboards and perfboards, so it was nessicary to ensure every part of the CPU could be tested seperately. Because of this crucial fact, I decided to utilise a single main data bus to communicate with every subcomponent. This allowed every part of the processor to be tested by hand or with a microcontroller (eg: arduino, esp32, etc). I also ditched memory mapped I/O, as it isn't important enough to me for basic a text terminal. After deciding I wrote the outline for the instruction set on paper - what it should be capable of at minimum - before creating a working model in Logisim (a tool for designing and simulating logical circuits).
+- With the addition of the MCU (microcode unit)
+
+I wanted to eventualy build the CPU on breadboards and perfboards, so it was nessicary to ensure every part of the CPU could be tested seperately. Because of this crucial fact, I decided to utilise a single main data bus to communicate with every subcomponent. This allowed every part of the processor to be tested by hand or with a microcontroller (eg: arduino, esp32, etc). I also ditched memory mapped I/O, as it isn't important enough to me when using a basic text terminal. After deciding I wrote the outline for the instruction set on paper - what it should be capable of at minimum - before creating a working model in Logisim (a tool for designing and simulating logical circuits).
 
 ## Functional Description
 The internal organisation of the BB-8 is split into 3 main parts: 1) the register section, 2) the arithmetic section and 3) the control section. Instructions obtained from memory are stored in the IR (instruction register), which is located in the control section. The MCU then performs all the necessary data bus signals to perform transfers within and between the arithmetic section and the register section.

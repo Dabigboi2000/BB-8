@@ -7,7 +7,7 @@ Over the past few years I have become increasingly interested in computer progra
 - External Ports
 - With the addition of the MCU (microcode unit)
 
-I wanted to eventualy build the CPU on breadboards and perfboards, so it was nessicary to ensure every part of the CPU could be tested seperately. Because of this crucial fact, I decided to utilise a single main data bus to communicate with every subcomponent. This allowed every part of the processor to be tested by hand or with a microcontroller (eg: arduino, esp32, etc). I also ditched memory mapped I/O, as it isn't important enough to me when using a basic text terminal. After deciding I wrote the outline for the instruction set on paper - what it should be capable of at minimum - before creating a working model in Logisim (a tool for designing and simulating logical circuits).
+I wanted to eventualy build the CPU on breadboards and perfboards, so it was nessicary to ensure every part of the CPU could be tested seperately. Because of this crucial fact, I decided to utilise a single main data bus to communicate with every subcomponent. This allowed every part of the processor to be tested by hand or with a microcontroller (eg: arduino, esp32, etc). I also ditched memory mapped I/O, as it isn't important enough to me when using a basic text terminal. I wrote the outline for the instruction set on paper - what it should be capable of at minimum - before creating a working model in Logisim (a tool for designing and simulating logical circuits).
 
 ## Functional Description
 The internal organisation of the BB-8 is split into 3 main parts: 1) the register section, 2) the arithmetic section and 3) the control section. Instructions obtained from memory are stored in the IR (instruction register), which is located in the control section. The MCU then performs all the necessary data bus signals to perform transfers within and between the arithmetic section and the register section.
@@ -35,6 +35,22 @@ The Accumulator Register (ACC) acts as a general purpose register for temporaril
 ### Program Counter
 The BB-8 features a 16-bit program counter used for accessing the current CPU instruction, and for reading and writing to and from memory.
 
+## Programming the BB-8
+Programming the BB-8 can be done in either machine code or Assembly. On the surface they are very different:
+Assembly is clean, supports comments, hexadecimal, decimal and ASCII conversion. It also allows for functions (and jumping to them) and is dynamicly sized and automaticly compresses code to reduce filesize:
+```asm
+@0000
+
+;this is an example program
+
+#PROG
+  LDA *e             ;'e' as a literal ASCII character
+  PAA
+
+  LDB $20            ;0x20, which coresponds to a space in ASCII
+  PAB
+  JMP &PROGH &PROGL  ;this loops back to the start
+```
 
 [ben-eater-cpu]: https://www.youtube.com/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU
 [astro-8]: https://www.youtube.com/watch?v=Zt0JfmV7CyI

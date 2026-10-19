@@ -115,7 +115,7 @@ as previously stated, some intructions require an argument to be passed through 
 ```asm
 LDA $13 ;this sets register a to 0x13
 ```
-> [!HINT]
+> [!NOTE]
 > Technicaly you could write an entire program just using literal values, because each cpu intruction coresponds to a number!
 
 ### Functions and Declarations

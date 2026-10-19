@@ -51,7 +51,7 @@ Assembly is clean, supports comments, hexadecimal, decimal and ASCII conversion.
   PAB
   JMP &PROGH &PROGL  ;this loops back to the start
 ```
-Whereas Machine code offers more direct control over the hardware, but is less user freindly by miles. There are no comments, no inbuilt conversions from decimal or ASCII and each function needs to be spaced out from one another to allow for changes that may increace the size of one. This means that Assembly usualy takes up more space in memory, and is less easy to program and read:
+Whereas Machine code offers more direct control over the hardware, but is less user freindly by miles. It is written purely in hexadecimal; there are no comments, no inbuilt conversions from decimal or ASCII and each function needs to be spaced out from one another to allow for changes that may increace the size of one. This means that Assembly usualy takes up more space in memory, and is less easy to program and read:
 ```
 0x0000: eb
 0x0001: eb
@@ -93,11 +93,30 @@ Memory allocations are placed at the start of every assembly file to be ran. Thi
 @0000    ;this tells the compiler the program starts at 0x0000
 ```
 > [!NOTE]
-> For normal use, this example above is absolutely fine, but the address must match where it is stored and ran.
+> For normal use, this rexample above is absolutely fine, but the address must match where it is stored and ran.
 
 ### CPU instructions
-
+Every assembly instruction coresponds to a machine code instruction.
+```asm
+JMP    ;is converted to 0x02
+AA0    ;is converted to 0x68
+```
 ### Literal Values
+Some instructions require constants:
+- Register A + 1
+- Register C = 3
+and to load these constants, literal values are used. In both assembly and machine code, instructions that require an argument will take in the next line. In BoxASM a '$', a '%' or a '*' represents an immediate value. The '$' allows for a hex number, the '%' allows for a decimal number and the '*' an ASCII character. This means that each type of constant is converted differently:
+```asm
+$13    ;0x13
+%10    ;0x0a
+*a     ;0x61
+```
+as previously stated, some intructions require an argument to be passed through in the next space. We can now use these literal values to do that:
+```asm
+LDA $13 ;this sets register a to 0x13
+```
+> [!HINT]
+> Technicaly you could write an entire program just using literal values, because each cpu intruction coresponds to a number!
 
 ### Functions and Declarations
 

@@ -67,7 +67,7 @@ bool PRT_EN[4] = {false};
 bool HLT = false;
 
 bool debug = false;
-int sleep = 1000;
+int sleep = 0;
 bool keys[0x100] = {0};
 queue<uint8_t> buffer;
 
@@ -180,6 +180,9 @@ int main(int argc, char* argv[])
     }
 
     init();
+
+    auto lastKeyboardPoll = chrono::steady_clock::now();
+
     cout << "init complete" << flush;
     cout << "\033[2J\033[H" << flush;
 
@@ -189,7 +192,14 @@ int main(int argc, char* argv[])
         for (int i = 0; i < 4; i++) PRT_EN[i] = false;
         dataBus();
         handlePorts();
-        handleExternalFlags();
+
+        auto now = chrono::steady_clock::now();
+
+        if (now - lastKeyboardPoll >= chrono::milliseconds(2))
+        {
+            handleExternalFlags();
+            lastKeyboardPoll = now;
+}
 
         if (debug) cout.rdbuf(mainWindowBuffer);
 
@@ -212,7 +222,8 @@ int main(int argc, char* argv[])
             cout.rdbuf(mainWindowBuffer);
         }
 
-        this_thread::sleep_for(chrono::microseconds(sleep));
+        if (sleep > 0)
+            this_thread::sleep_for(chrono::microseconds(sleep));
 
     }
     if (!running) cout << "interuppted by user\n";
@@ -537,33 +548,37 @@ void handlePorts()
 
     if (PRT_EN[3])
     {
+        ACC = buffer.empty() ? 0 : buffer.front();
+
         if (!buffer.empty())
-        {
             buffer.pop();
-        }
-        ACC = PRT_D;
+
+        PRT_D = buffer.empty() ? 0 : buffer.front();
+
+        FLG[0xb] = !buffer.empty();
+        FLG[0xc] = buffer.empty();
     }
 }
 
 void handleExternalFlags()
 {
     BYTE keyboardState[256] = {};
+    bool pressedState[256] = {};
 
-    // Get the state of every key
+    // Read the keyboard once
     for (int i = 0; i < 256; i++)
     {
-        if (GetAsyncKeyState(i) & 0x8000)
+        pressedState[i] = (GetAsyncKeyState(i) & 0x8000) != 0;
+
+        if (pressedState[i])
             keyboardState[i] = 0x80;
     }
 
+    // Process newly pressed keys
     for (unsigned int c = 0; c < 256; c++)
     {
-        bool pressed = (GetAsyncKeyState(c) & 0x8000) != 0;
-
-        if (pressed && !keys[c])
+        if (pressedState[c] && !keys[c])
         {
-            keys[c] = true;
-
             if (c == VK_RETURN)
             {
                 buffer.push(0x0a);
@@ -592,16 +607,11 @@ void handleExternalFlags()
                 }
             }
         }
-        else if (!pressed)
-        {
-            keys[c] = false;
-        }
+
+        keys[c] = pressedState[c];
     }
 
-    if (!buffer.empty())
-        PRT_D = buffer.front();
-    else
-        PRT_D = 0;
+    PRT_D = buffer.empty() ? 0 : buffer.front();
 
     FLG[0xb] = !buffer.empty();
     FLG[0xc] = buffer.empty();

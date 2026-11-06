@@ -1,0 +1,11 @@
+_func main = {
+    _dat x = {$5};
+    _dat y = {$2};
+    _sub sub = {add}
+    _ret result = {res};
+}
+
+_func add = {
+    _alu res = {x, y, add};
+    _ret result = {res};
+}

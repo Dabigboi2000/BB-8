@@ -1,0 +1,354 @@
+@0000
+
+;*
+Copyright (C) 2026 Louis White
+Full GPL license found in 'COPYING'
+*;
+
+;*
+===== PREBOOT CHECKS =====
+this section resets registers, checks RAM and identifies peripherals
+*;
+
+#AAAA   ;clear registers
+
+    ;prints "Zeroing registers"
+    LDA *Z PAA LDA *e PAA LDA *r PAA LDA *o PAA LDA *i PAA LDA *n PAA LDA *g PAA LDA $20 PAA
+    LDA *r PAA LDA *e PAA LDA *g PAA LDA *i PAA LDA *s PAA LDA *t PAA LDA *e PAA LDA *r PAA LDA *s PAA
+
+    LDA $00 LDA *. PAA      ;zero out registers
+    LDB $00 LDA *. PAA
+    LDC $00 LDA *. PAA
+    LDD $00 LDA *. PAA
+    LDE $00 LDA *. PAA
+    LDF $00 LDA *. PAA
+    LDG $00 LDA *. PAA
+         
+    LDA *. PAA
+    LDA *O PAA LDA *K PAA
+    LDA $0a PAA
+    
+    LDA $00
+
+    JMP &AAABH &AAABL
+
+#AAAB   ;check for RAM
+
+    ;prints "Checking for RAM"
+    LDA *C PAA LDA *h PAA LDA *e PAA LDA *c PAA LDA *k PAA LDA *i PAA LDA *n PAA LDA *g PAA LDA $20 PAA
+    LDA *f PAA LDA *o PAA LDA *r PAA LDA $20 PAA
+    LDA *R PAA LDA *A PAA LDA *M PAA
+
+    LDE $80
+    LDD $00
+    LDA *. PAA
+
+    LDB $01
+    LDC $00
+
+    LDA $55     ;load 0x55
+    WRA
+    AA0
+    LDA *. PAA
+
+    RDA
+    AA1         ;check if wrote
+    EQU C>B
+    LDA *. PAA
+
+    LDA $AA     ;load 0xaa
+    WRA
+    AA0
+    LDA *. PAA
+
+    RDA
+    AA1         ;check if wrote
+    EQU C>B
+    LDA *. PAA
+
+    BA1 CA0     ;check if sucsessful
+    LDF &AAZZH LDG &AAZZL
+    LDA *. PAA
+    NEQ JMR
+
+    LDA *. PAA
+    LDA *. PAA
+    LDA *O PAA LDA *K PAA
+    LDA $0a PAA
+
+    JMP &AAACH &AAACL
+
+#AAAC   ;RAM verification setup
+    ;prints "Verifying RAM"
+    LDA *V PAA LDA *e PAA LDA *r PAA LDA *i PAA LDA *f PAA LDA *y PAA LDA *i PAA LDA *n PAA LDA *g PAA LDA $20 PAA
+    LDA *R PAA LDA *A PAA LDA *M PAA
+
+    LDE $80
+    LDD $00
+    JMP &AAADH &AAADL
+    
+#AAAD   ;RAM verification loop
+    LDA $55     ;load 0x55
+    WRA
+    AA0
+
+    RDA
+    AA1         ;check if wrote
+    EQU C>B
+
+    LDA $AA     ;load 0xaa
+    WRA
+    AA0
+
+    RDA
+    AA1         ;check if wrote
+    EQU C>B
+
+    LDA $00     ;resets index of RAM
+    WRA
+
+    BA1 CA0     ;check if sucsessful
+    LDF &AAZZH LDG &AAZZL
+    NEQ JMR
+
+    LDA $88     ;check if finished
+    AA0 EA1
+    LDF &AAAEH LDG &AAAEL
+    EQU JMR
+
+    LDA $00     ;check if finished
+    AA0 DA1
+    LDF &AAAEH LDG &AAAEL
+    EQU JMR
+
+    JMP &AAAGH &AAAGL
+
+#AAAE           ;increment RAM verification loop
+    LDA $01
+    AA0 DA1
+    ADD ALD
+
+    LDF &AAAFH LDG &AAAFL   ;if carry
+    NCA JMR
+
+    JMP &AAADH &AAADL
+
+#AAAF           ;increment RAM handle carry
+    EA1 ADD
+    ALE
+    LDA *. PAA
+    JMP &AAADH &AAADL
+
+#AAAG               ;RAM verification end
+    LDA *O PAA
+    LDA *K PAA
+    LDA $0a PAA
+
+#AAAH               ;peripheral check
+    LDA *I PAA LDA *D PAA LDA *i PAA LDA *n PAA LDA *g PAA LDA $20 PAA
+    LDA *p PAA LDA *e PAA LDA *r PAA LDA *i PAA LDA *p PAA LDA *h PAA LDA *e PAA LDA *r PAA LDA *a PAA LDA *l PAA LDA *: PAA LDA $20 PAA
+
+    LDA $69 PBA PBA ;send check to peripheral
+
+    PCA AA0         ;check if drive
+    LDA $01
+    AA1
+
+    LDF &AAAIH LDG &AAAIL
+    NEQ JMR
+
+    LDA $02         ;check if telnet
+    AA1
+
+    LDF &AAAJH LDG &AAAJL
+    NEQ JMR
+
+
+    JMP &AAAOH &AAAOL
+
+#AAAI               ;drive peripheral
+    LDA *D PAA LDA *r PAA LDA *i PAA LDA *v PAA LDA *e PAA LDA $0a PAA
+    JMP &AAAPH &AAAPL
+
+#AAAJ               ;drive peripheral
+    LDA *C PAA LDA *o PAA LDA *m PAA LDA *p PAA LDA *u PAA LDA *t PAA LDA *e PAA LDA *r PAA LDA $0a PAA
+    JMP &AAAPH &AAAPL
+
+#AAAO               ;peripheral not recognised or missing
+    LDA *p PAA LDA *e PAA LDA *r PAA LDA *i PAA LDA *p PAA LDA *h PAA LDA *e PAA LDA *r PAA LDA *a PAA LDA *l PAA LDA $20 PAA
+    LDA *n PAA LDA *o PAA LDA *t PAA LDA $20 PAA
+    LDA *r PAA LDA *e PAA LDA *c PAA LDA *o PAA LDA *g PAA LDA *n PAA LDA *i PAA LDA *s PAA LDA *e PAA LDA *d PAA LDA $20 PAA
+    LDA *o PAA LDA *r PAA LDA $20 PAA
+    LDA *m PAA LDA *i PAA LDA *s PAA LDA *s PAA LDA *i PAA LDA *n PAA LDA *g PAA LDA $0a PAA
+    JMP &AAAPH &AAAPL
+
+#AAAP   ;logo setup
+    ;clears screen
+    LDA $0c PAA
+
+    LDE $10
+    LDD $00
+    JMP &AAAQH &AAAQL
+    
+#AAAQ   ;logo loop
+    RDA         ;print to screen
+    PAA
+
+    LDA $11     ;check if finished
+    AA0 EA1
+    LDF &AAARH LDG &AAARL
+    EQU JMR
+
+    LDA $41     ;check if finished
+    AA0 DA1
+    LDF &AAARH LDG &AAARL
+    EQU JMR
+
+    JMP &AAATH &AAATL
+
+#AAAR           ;logo increment
+    LDA $01
+    AA0 DA1
+    ADD ALD
+
+    LDF &AAASH LDG &AAASL   ;if carry
+    NCA JMR
+
+    JMP &AAAQH &AAAQL
+
+#AAAS           ;logo carry
+    EA1 ADD
+    ALE
+    JMP &AAAQH &AAAQL
+
+#AAAT   ;connect drive
+    LDA $0a PAA
+
+    LDA $69 PBA PBA ;send check to peripheral
+
+    PCA AA0         ;check if drive
+    LDA $01
+    AA1
+
+    LDF &AAATH LDG &AAATL
+    EQU JMR
+
+    JMP &AAAUH &AAAUL
+
+
+#AAAU   ;copy setup
+    LDB $00
+    LDE $80
+    LDD $00
+    LDC $00
+    JMP &AAAVH &AAAVL
+    
+#AAAV   ;copy loop
+    LDA $00 PBA ;send index
+    PBD
+
+    LDA $01 PBA
+    PBC
+
+    PCA WRA
+
+
+    LDA $82     ;check if finished
+    AA0 EA1
+    LDF &AAAWH LDG &AAAWL
+    EQU JMR
+
+    LDA $00     ;check if finished
+    AA0 DA1
+    LDF &AAAWH LDG &AAAWL
+    EQU JMR
+
+    JMP &AAAZH &AAAZL
+
+#AAAW           ;copy increment
+    LDA $01
+    AA0 DA1
+    ADD ALD
+
+    LDF &AAAYH LDG &AAAYL   ;if carry
+    NCA JMR
+
+    JMP &AAAVH &AAAVL
+
+#AAAY           ;copy carry
+    EA1 ADD
+    ALE
+
+    CA1 ADD
+    ALC
+
+    BA0
+    LDA $00
+    AA1
+
+    LDF &AABAH LDG &AABAL
+    NEQ JMR
+
+    LDA $01
+    AA1
+
+    LDF &AABBH LDG &AABBL
+    NEQ JMR
+
+    LDA $02
+    AA1
+
+    LDF &AABCH LDG &AABCL
+    NEQ JMR
+
+    LDA $03
+    AA1
+
+    LDF &AABDH LDG &AABDL
+    NEQ JMR
+
+    JMP &AAAVH &AAAVL
+
+#AAAZ
+    HLT
+
+#AABA
+    LDA $08 PAA
+    LDA */ PAA
+
+    LDB $01
+
+    JMP &AAAVH &AAAVL
+
+#AABB
+    LDA $08 PAA
+    LDA *- PAA
+
+    LDB $02
+
+    JMP &AAAVH &AAAVL
+
+#AABC
+    LDA $08 PAA
+    LDA *\ PAA
+
+    LDB $03
+
+    JMP &AAAVH &AAAVL
+
+#AABD
+    LDA $08 PAA
+    LDA *| PAA
+
+    LDB $00
+
+    JMP &AAAVH &AAAVL
+
+#AAZZ   ;boot init fail
+    
+    ;prints "Boot init fail"
+    LDA *B PAA LDA *o PAA LDA *o PAA LDA *t PAA LDA $20 PAA
+    LDA *i PAA LDA *n PAA LDA *i PAA LDA *t PAA LDA $20 PAA
+    LDA *f PAA LDA *a PAA LDA *i PAA LDA *l PAA LDA $0a PAA
+
+    HLT         ;stop program

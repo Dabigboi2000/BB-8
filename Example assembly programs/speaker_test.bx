@@ -1,0 +1,5 @@
+@0000
+
+#PROG
+    LDA $07 PAA
+    HLT

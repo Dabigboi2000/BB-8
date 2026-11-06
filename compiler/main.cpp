@@ -4,6 +4,10 @@
 #include <iomanip>
 #include <string>
 #include <numeric>
+#include <cstdint>
+#include <algorithm>
+#include <cctype>
+
 using namespace std;
 
 string raw;
@@ -44,6 +48,7 @@ string cores[150] =
 int rout = 0;
 int addr = 0;
 int length = 0;
+bool binary = false;
 
 int load_lis();
 void parse();
@@ -57,11 +62,21 @@ string charToHex(char c);
 
 int main(int argc, char* argv[])
 {
-    
+
     if (argc < 3)
     {
-        cout << "Usage: compiler <source file> <index>\n";
+        cout << "Usage: bbmc.exe <source file> <index>\n";
         return 1;
+    }
+
+    if (argc >= 4)
+    {
+        if (string(argv[3]) == "-b" || string(argv[3]) == "-B") 
+        {
+            binary = true;
+            cout << "binary\n";
+        }
+        else binary = false;
     }
 
     string filename = argv[1];
@@ -92,15 +107,13 @@ int main(int argc, char* argv[])
 
     int inst = finish();
 
-    for (int i = 0; i < inst; i++)
-    {
-        full[i] += ' ';
-    }
+    if (!binary){ for (int i = 0; i < inst; i++) full[i] += ' '; }
+
     string all = accumulate(full, full + inst, string());
 
-
     string outputname = filename.substr(0, filename.find('.'));
-    outputname += ".txt";
+    if (!binary) outputname += ".txt";
+    else outputname += ".bin";
 
     ofstream output(outputname);
 
@@ -109,8 +122,24 @@ int main(int argc, char* argv[])
         cout << "Error: Could not create output file\n";
         return 1;
     }
+    
+    if (!binary) output << format(all, start);
+    
+    else
+    {
+        for (int i = 0; i < inst; i++)
+        {
+            // cout << "Converting [" << i << "]: '" << full[i] << "'" << endl;
 
-    output << format(all, start);
+            erase_if(full[i], [](unsigned char c) { return isspace(c); });
+
+            if (full[i] != "")
+            {
+                uint8_t byte = stoi(full[i], nullptr, 16);
+                output.write(reinterpret_cast<const char*>(&byte), 1);
+            }
+        }
+    }     
 
     output.close();
 }

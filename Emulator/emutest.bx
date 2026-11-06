@@ -1,0 +1,10 @@
+@0000
+
+#PROG
+    LDA $02
+    LDB $03
+
+    AA0 BA1
+    ADD
+    
+    HLT

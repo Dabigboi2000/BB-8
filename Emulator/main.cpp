@@ -137,6 +137,12 @@ int main(int argc, char* argv[])
             debug = true;
             cout << "opening debug monitor..\n" << flush;
         }
+
+        if (string(argv[2]) == "-s" || string(argv[2]) == "-S")
+        {
+            debug = false;
+            cout << "debug: false\n" << flush;
+        }
     }
 
     if (argc >= 4)
@@ -303,7 +309,7 @@ void dataBus()
 
 void loadInstruction()
 {
-    IR = MEMORY[(PC_HI * 0x100) + PC_LO] * 4;
+    IR = (MEMORY[(PC_HI * 0x100) + PC_LO] * 4) - 1;
 
     // cout << hex << (int)MEMORY[(PC_HI * 0xff) + PC_LO] << '\n' << flush;
 }
@@ -373,7 +379,7 @@ void ALUAcc(uint4_t sel)
         ALU_REG[1] = ACC;
     }
 
-    ALU_SHI = (ALU_REG[0] << ALU_REG[1]) & 0x15;
+    ALU_SHI = (ALU_REG[0] << ALU_REG[1]) >> 4 & 0x0F;
 
     if (ALU_REG[0] > ALU_REG[1])
     {
@@ -509,7 +515,6 @@ void sys(uint4_t sel)
     else if (sel == 0xf)
     {
         loadInstruction();
-        IR = IR - 1;
     }
 }
 
@@ -539,12 +544,19 @@ void handlePorts()
         ACC = PRT_D;
     }
 }
+
 void handleExternalFlags()
 {
-    BYTE keyboardState[256];
-    GetKeyboardState(keyboardState);
+    BYTE keyboardState[256] = {};
 
-    for (unsigned int c = 0; c < 0x100; c++)
+    // Get the state of every key
+    for (int i = 0; i < 256; i++)
+    {
+        if (GetAsyncKeyState(i) & 0x8000)
+            keyboardState[i] = 0x80;
+    }
+
+    for (unsigned int c = 0; c < 256; c++)
     {
         bool pressed = (GetAsyncKeyState(c) & 0x8000) != 0;
 
@@ -558,15 +570,16 @@ void handleExternalFlags()
             }
             else
             {
-                WCHAR character[4];
+                WCHAR character[4] = {};
 
-                int result = ToUnicode(
+                int result = ToUnicodeEx(
                     c,
                     MapVirtualKey(c, MAPVK_VK_TO_VSC),
                     keyboardState,
                     character,
                     4,
-                    0
+                    0,
+                    GetKeyboardLayout(0)
                 );
 
                 if (result > 0)
@@ -574,11 +587,7 @@ void handleExternalFlags()
                     for (int i = 0; i < result; i++)
                     {
                         if (character[i] <= 0x7F)
-                        {
-                            buffer.push(
-                                static_cast<uint8_t>(character[i])
-                            );
-                        }
+                            buffer.push((uint8_t)character[i]);
                     }
                 }
             }

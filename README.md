@@ -169,6 +169,12 @@ This can also be used for jumping between functions:
 > [!IMPORTANT]
 > The first function or line written in BoxASM will always run first, then continue down! Make sure to keep this in mind.
 
+# Whats to come
+For a while now I have been consistently working on this project, and am currently developing:
+- an emulator written in C++ for faster programs
+- a compiler for a higher level language called 'Malt'
+- continuing updating and fixing the existing software
+
 [ben-eater-cpu]: https://www.youtube.com/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU
 [astro-8]: https://www.youtube.com/watch?v=Zt0JfmV7CyI
 [boxasm-git]: https://github.com/Dabigboi2000/boxasm

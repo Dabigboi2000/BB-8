@@ -1,3 +1,4 @@
+
 ---
 title: Programming
 nav_order: 4
@@ -32,8 +33,6 @@ Assembly is clean, supports comments, hexadecimal, decimal and ASCII conversion.
 Machine code offers more direct control over the hardware, but is considerably less user-friendly.
 
 It is written purely in hexadecimal; there are no comments, no built-in conversions from decimal or ASCII, and each function needs to be spaced out from one another to allow for changes that may alter the size and layout of the program.
-
-This means that machine code is generally harder to program and read, although it can offer more direct control over memory layout.
 
 ```text
 0x0000: eb

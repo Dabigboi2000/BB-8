@@ -154,13 +154,14 @@ This can also be used for jumping between functions:
 #INIT
   LDA *[
   PAA
+  JMP    ;takes the next 2 lines as arguments for destination (loop function)
   &LOOPH ;the high byte of the LOOP function address
   &LOOPL ;the low byte of the LOOP function address
 
 #LOOP
   LDA *e
   PAA
-  JMP    ;takes the next 2 lines as arguments for destination
+  JMP    ;takes the next 2 lines as arguments for destination (itself)
   &LOOPH ;the high byte of the LOOP function address
   &LOOPL ;the low byte of the LOOP function address
 ```

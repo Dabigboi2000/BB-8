@@ -1,0 +1,24 @@
+title: BB-8 Documentation
+description: Technical documentation for the BB-8 custom computer.
+
+theme: just-the-docs
+
+# GitHub Pages settings
+url: "https://Dabigboi2000.github.io"
+baseurl: ""
+
+# Appearance
+color_scheme: dark
+
+# Navigation and search
+search_enabled: true
+heading_anchors: true
+
+# Links in the top-right corner
+aux_links:
+  "GitHub Repository":
+    - "https://github.com/Dabigboi2000/BB-8"
+
+# Navigation behaviour
+nav_sort: case_insensitive
+nav_external_links: []

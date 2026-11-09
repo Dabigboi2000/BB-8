@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <cctype>
+#include <vector>
 
 using namespace std;
 
@@ -16,6 +17,13 @@ string half[0x10000];
 string full[0x10000];
 string routines[100];
 string routine_addr[100];
+uint8_t final_bin[0x10000];
+struct Include{
+    string name;
+    uint16_t location;
+};
+
+vector<Include> inclusions;
 
 string words[150] = 
 {
@@ -48,7 +56,6 @@ string cores[150] =
 int rout = 0;
 int addr = 0;
 int length = 0;
-bool binary = false;
 
 int load_lis();
 void parse();
@@ -67,16 +74,6 @@ int main(int argc, char* argv[])
     {
         cout << "Usage: bbmc.exe <source file> <index>\n";
         return 1;
-    }
-
-    if (argc >= 4)
-    {
-        if (string(argv[3]) == "-b" || string(argv[3]) == "-B") 
-        {
-            binary = true;
-            cout << "binary\n";
-        }
-        else binary = false;
     }
 
     string filename = argv[1];
@@ -107,13 +104,47 @@ int main(int argc, char* argv[])
 
     int inst = finish();
 
-    if (!binary){ for (int i = 0; i < inst; i++) full[i] += ' '; }
-
     string all = accumulate(full, full + inst, string());
 
     string outputname = filename.substr(0, filename.find('.'));
-    if (!binary) outputname += ".txt";
-    else outputname += ".bin";
+    outputname += ".bin";
+
+
+
+    for (int i = 0; i < inst; i++)
+    {
+        erase_if(full[i], [](unsigned char c) { return isspace(c); });
+
+        if (full[i] != "")
+        {
+            final_bin[i + addr] = stoi(full[i], nullptr, 16);
+        }
+    }
+    
+    for (int i = 0; i < inclusions.size(); i++)
+    {
+        vector<uint8_t> data;
+
+        ifstream file(inclusions[i].name, ios::binary);
+
+        if (!file) {
+            cout << "Failed to open inclusion: " << inclusions[i].name << '\n';
+            return 1;
+        }
+        cout << "Opened inclusion: " << inclusions[i].name << '\n';
+
+        data = vector<uint8_t>(
+            istreambuf_iterator<char>(file),
+            istreambuf_iterator<char>()
+        );
+
+        file.close();
+
+        for (int b = 0; b < data.size(); b++)
+        {
+            final_bin[b + inclusions[i].location] = data[b];
+        }
+    }
 
     ofstream output(outputname);
 
@@ -122,25 +153,7 @@ int main(int argc, char* argv[])
         cout << "Error: Could not create output file\n";
         return 1;
     }
-    
-    if (!binary) output << format(all, start);
-    
-    else
-    {
-        for (int i = 0; i < inst; i++)
-        {
-            // cout << "Converting [" << i << "]: '" << full[i] << "'" << endl;
-
-            erase_if(full[i], [](unsigned char c) { return isspace(c); });
-
-            if (full[i] != "")
-            {
-                uint8_t byte = stoi(full[i], nullptr, 16);
-                output.write(reinterpret_cast<const char*>(&byte), 1);
-            }
-        }
-    }     
-
+    output.write(reinterpret_cast<const char*>(final_bin), sizeof(final_bin));
     output.close();
 }
 
@@ -210,6 +223,16 @@ void parse()
                 b++;
             }
             offset = a;
+        }
+        else if (cur[0] == '<')
+        {
+            int closing = cur.find('>');
+            string name = cur.substr(1, closing - 1);
+            int location = stoi(cur.substr(closing + 1), nullptr, 16);
+            inclusions.push_back({name, location});
+
+            cout << "include: '" << name << "' at: " << hex << location << '\n';
+
         }
         else if (cur[0] == '#')
         {

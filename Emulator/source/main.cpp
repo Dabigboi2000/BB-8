@@ -11,10 +11,13 @@
 #include <csignal>
 #include <windows.h>
 #include <queue>
+#include <vector>
+#include <random>
 
 #include "mcu_rom.h"
 
 using namespace std;
+using namespace chrono;
 
 template <typename StorageType, size_t Bits>
 class CustomInt {
@@ -67,9 +70,19 @@ bool PRT_EN[4] = {false};
 bool HLT = false;
 
 bool debug = false;
-int sleep = 0;
+int freq = 0;
 bool keys[0x100] = {0};
+
+bool EXT_MEM_CLK = true;
+uint8_t ext_mem_addr[3] = {0};
+uint8_t EXT_MEM_OPERAND = 0;
+uint8_t EXT_MEM_OPCODE = 0;
+
+
 queue<uint8_t> buffer;
+queue<uint8_t> port_buffer;
+vector<uint8_t> EXT_MEMORY;
+
 
 void init();
 void dataBus();
@@ -91,6 +104,7 @@ void prtD();
 void sys(uint4_t sel);
 void handlePorts();
 void handleExternalFlags();
+int randomRange(int min, int max);
 
 volatile sig_atomic_t running = 1;
 
@@ -145,9 +159,35 @@ int main(int argc, char* argv[])
         }
     }
 
+    if (argc >= 5)
+    {
+        freq = stoi(argv[3]);
+    }
+
     if (argc >= 4)
     {
-        sleep = stoi(argv[3]);
+        if (string(argv[2]) == "-f" || string(argv[2]) == "-F")
+        {
+            ifstream file("filesystem.bin", ios::binary);
+
+            if (file.is_open())
+            {
+                EXT_MEMORY.assign(
+                    istreambuf_iterator<char>(file),
+                    istreambuf_iterator<char>()
+                );
+
+                cout << "Loaded " << EXT_MEMORY.size() << " bytes\n";
+            }
+            else
+            {
+                cout << "Failed to open filesystem.bin\n";
+            }
+        }
+        else if (string(argv[2]) == "-n" || string(argv[2]) == "-N")
+        {
+            //do nothing if it isnt enabled
+        }
     }
 
     ifstream file(argv[1], ios::binary | ios::ate);
@@ -186,9 +226,14 @@ int main(int argc, char* argv[])
     cout << "init complete" << flush;
     cout << "\033[2J\033[H" << flush;
 
+    auto nextCycle = steady_clock::now();
+    const auto cycleTime = microseconds(freq);
+
     HLT = false;
     while (!HLT && running)
     {
+        nextCycle += cycleTime;
+
         for (int i = 0; i < 4; i++) PRT_EN[i] = false;
         dataBus();
         handlePorts();
@@ -199,7 +244,7 @@ int main(int argc, char* argv[])
         {
             handleExternalFlags();
             lastKeyboardPoll = now;
-}
+        }
 
         if (debug) cout.rdbuf(mainWindowBuffer);
 
@@ -222,12 +267,11 @@ int main(int argc, char* argv[])
             cout.rdbuf(mainWindowBuffer);
         }
 
-        if (sleep > 0)
-            this_thread::sleep_for(chrono::microseconds(sleep));
+        this_thread::sleep_until(nextCycle);
 
     }
-    if (!running) cout << "interuppted by user\n";
-    cout << "ended on address " << hex << ((PC_HI * 0x100) + PC_LO) << flush;
+    if (!running) cout << "\ninteruppted by user";
+    cout << "\nended on address " << hex << ((PC_HI * 0x100) + PC_LO) << flush;
     cout << '\n';
 
     return 0;
@@ -242,6 +286,10 @@ void init()
     IR = 0x3ff;
 
     if (debug) initDebugTerminal();
+
+    port_buffer.push(0);
+    port_buffer.push(0);
+
 }
 
 void dataBus()
@@ -538,7 +586,43 @@ void handlePorts()
 
     if (PRT_EN[1])
     {
-        // not implemented
+        port_buffer.push(ACC);
+        port_buffer.pop();
+
+        EXT_MEM_OPCODE = port_buffer.front();
+        EXT_MEM_OPERAND = port_buffer.back();
+
+        EXT_MEM_CLK = !EXT_MEM_CLK;
+
+        if (EXT_MEM_CLK)
+        {
+            switch (EXT_MEM_OPCODE)
+            {
+                case 0x0:
+                    ext_mem_addr[0] = EXT_MEM_OPERAND;
+                    PRT_C = EXT_MEMORY[(ext_mem_addr[2] * 0x10000) + (ext_mem_addr[1] * 0x100) + ext_mem_addr[0]];
+                    break;
+
+                case 0x1:
+                    ext_mem_addr[1] = EXT_MEM_OPERAND;
+                    PRT_C = EXT_MEMORY[(ext_mem_addr[2] * 0x10000) + (ext_mem_addr[1] * 0x100) + ext_mem_addr[0]];
+                    break;
+
+                case 0x2:
+                    ext_mem_addr[2] = EXT_MEM_OPERAND;
+                    PRT_C = EXT_MEMORY[(ext_mem_addr[2] * 0x10000) + (ext_mem_addr[1] * 0x100) + ext_mem_addr[0]];
+                    break;
+
+                case 0x3:
+                    EXT_MEMORY[(ext_mem_addr[2] * 0x10000) + (ext_mem_addr[1] * 0x100) + ext_mem_addr[0]] = EXT_MEM_OPCODE;
+                    PRT_C = EXT_MEMORY[(ext_mem_addr[2] * 0x10000) + (ext_mem_addr[1] * 0x100) + ext_mem_addr[0]];
+                    break;
+
+                case 0x4:
+                    PRT_C = randomRange(0x0, 0xff);
+                    break;
+            }
+        }
     }
 
     if (PRT_EN[2])
@@ -583,6 +667,26 @@ void handleExternalFlags()
             {
                 buffer.push(0x0a);
             }
+            else if (c == VK_UP)
+            {
+                buffer.push(0x11);
+            }
+            else if (c == VK_RIGHT)
+            {
+                buffer.push(0x12);
+            }
+            else if (c == VK_DOWN)
+            {
+                buffer.push(0x13);
+            }
+            else if (c == VK_LEFT)
+            {
+                buffer.push(0x14);
+            }
+            else if (c == VK_OEM_3)
+            {
+                running = false;
+            }
             else
             {
                 WCHAR character[4] = {};
@@ -615,4 +719,14 @@ void handleExternalFlags()
 
     FLG[0xb] = !buffer.empty();
     FLG[0xc] = buffer.empty();
+}
+
+int randomRange(int min, int max)
+{
+    static random_device rd;
+    static mt19937 gen(rd());
+
+    uniform_int_distribution<> dist(min, max);
+
+    return dist(gen);
 }

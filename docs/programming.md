@@ -1,9 +1,3 @@
-
----
-title: Programming
-nav_order: 4
----
-
 # Programming the BB-8
 
 Programming the BB-8 can be done in either machine code or Assembly. On the surface, they are very different, but both fundamentally perform the same task.

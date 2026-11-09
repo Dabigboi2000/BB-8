@@ -14,7 +14,7 @@ Programming the BB-8 can be done in either machine code or Assembly. On the surf
 
 Assembly is clean, supports comments, hexadecimal, decimal and ASCII conversion. It also allows for functions (and jumping to them), and is dynamically sized and automatically compresses code to reduce file size.
 
-```asm
+```
 @0000
 
 ; this is an example program
@@ -34,7 +34,7 @@ Machine code offers more direct control over the hardware, but is considerably l
 
 It is written purely in hexadecimal; there are no comments, no built-in conversions from decimal or ASCII, and each function needs to be spaced out from one another to allow for changes that may alter the size and layout of the program.
 
-```text
+```
 0x0000: eb
 0x0001: eb
 0x0002: 11
